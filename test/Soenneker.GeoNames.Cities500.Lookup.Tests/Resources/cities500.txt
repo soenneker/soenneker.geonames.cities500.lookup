@@ -1,0 +1,2 @@
+New York City	NY	40.71427	-74.00597
+Fort Lauderdale	FL	26.12231	-80.14338
