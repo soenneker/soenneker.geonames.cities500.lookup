@@ -47,6 +47,6 @@
         <PackageReference Include="Soenneker.Extensions.ValueTask" Version="4.0.115" />
         <PackageReference Include="Soenneker.GeoNames.Cities500.Data" Version="4.0.12" />
         <PackageReference Include="Soenneker.Utils.File" Version="4.0.2170" />
-        <PackageReference Include="Soenneker.Utils.Paths.Resources" Version="4.0.155" />
+        <PackageReference Include="Soenneker.Utils.Paths.Resources" Version="4.0.157" />
     </ItemGroup>
 </Project>
