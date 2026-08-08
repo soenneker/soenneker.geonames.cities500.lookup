@@ -143,20 +143,22 @@ public sealed class GeonamesCities500Lookup : IGeonamesCities500Lookup
             if (string.IsNullOrWhiteSpace(line))
                 continue;
 
-            string[] columns = line.Split('\t');
+            ReadOnlySpan<char> lineSpan = line;
+            Span<Range> columns = stackalloc Range[4];
+            int columnCount = lineSpan.Split(columns, '\t');
 
-            if (columns.Length != 4)
+            if (columnCount != 4)
                 throw new InvalidDataException(
                     $"Unexpected GeoNames format at line {lineNumber}. Expected 4 tab-delimited columns: city, state, latitude, longitude.");
 
-            string city = columns[0].Trim();
-            string state = columns[1].Trim();
+            string city = lineSpan[columns[0]].Trim().ToString();
+            string state = lineSpan[columns[1]].Trim().ToString();
 
             if (city.Length == 0 || !TryNormalizeState(state, out string stateCode))
                 continue;
 
-            var record = new GeoNamesRecord(city, stateCode, double.Parse(columns[2], CultureInfo.InvariantCulture),
-                double.Parse(columns[3], CultureInfo.InvariantCulture));
+            var record = new GeoNamesRecord(city, stateCode, double.Parse(lineSpan[columns[2]], CultureInfo.InvariantCulture),
+                double.Parse(lineSpan[columns[3]], CultureInfo.InvariantCulture));
 
             all.Add(record);
 
@@ -202,7 +204,8 @@ public sealed class GeonamesCities500Lookup : IGeonamesCities500Lookup
 
         foreach (KeyValuePair<string, List<GeoNamesRecord>> pair in source)
         {
-            result[pair.Key] = pair.Value.ToArray();
+            pair.Value.TrimExcess();
+            result[pair.Key] = pair.Value;
         }
 
         return result.ToFrozenDictionary(source.Comparer);
@@ -237,15 +240,35 @@ public sealed class GeonamesCities500Lookup : IGeonamesCities500Lookup
         if (normalized.Length == 0)
             return normalized;
 
-        string[] tokens = normalized.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        FrozenDictionary<string, string>.AlternateLookup<ReadOnlySpan<char>> aliases =
+            _cityTokenAliases.GetAlternateLookup<ReadOnlySpan<char>>();
+        StringBuilder? builder = null;
+        ReadOnlySpan<char> span = normalized;
+        var start = 0;
 
-        for (var i = 0; i < tokens.Length; i++)
+        for (var i = 0; i <= span.Length; i++)
         {
-            if (_cityTokenAliases.TryGetValue(tokens[i], out string? replacement))
-                tokens[i] = replacement;
+            if (i != span.Length && span[i] != ' ')
+                continue;
+
+            ReadOnlySpan<char> token = span[start..i];
+            if (aliases.TryGetValue(token, out string? replacement))
+            {
+                builder ??= new StringBuilder(normalized.Length + 8).Append(span[..start]);
+                builder.Append(replacement);
+            }
+            else if (builder is not null)
+            {
+                builder.Append(token);
+            }
+
+            if (builder is not null && i < span.Length)
+                builder.Append(' ');
+
+            start = i + 1;
         }
 
-        return string.Join(' ', tokens);
+        return builder?.ToString() ?? normalized;
     }
 
     private static string NormalizeText(string value)
