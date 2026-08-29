@@ -14,6 +14,8 @@ public static class GeonamesCities500LookupRegistrar
     /// <summary>
     /// Adds <see cref="IGeonamesCities500Lookup"/> as a singleton service.
     /// </summary>
+    /// <param name="services">Service collection that receives the registration.</param>
+    /// <returns>The same service collection, so additional registrations can be chained.</returns>
     public static IServiceCollection AddGeonamesCities500LookupAsSingleton(this IServiceCollection services)
     {
         services.AddFileUtilAsSingleton()
@@ -26,6 +28,8 @@ public static class GeonamesCities500LookupRegistrar
     /// <summary>
     /// Adds <see cref="IGeonamesCities500Lookup"/> as a scoped service.
     /// </summary>
+    /// <param name="services">Service collection that receives the registration.</param>
+    /// <returns>The same service collection, so additional registrations can be chained.</returns>
     public static IServiceCollection AddGeonamesCities500LookupAsScoped(this IServiceCollection services)
     {
         services.AddFileUtilAsScoped()
