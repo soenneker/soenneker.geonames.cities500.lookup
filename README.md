@@ -6,7 +6,7 @@
 
 # Soenneker.GeoNames.Cities500.Lookup
 
-A lookup util for US GeoNames cities500 data.
+A normalized, in-memory lookup for the US city and coordinate extract packaged by `Soenneker.GeoNames.Cities500.Data`.
 
 ## Install
 
@@ -14,36 +14,43 @@ A lookup util for US GeoNames cities500 data.
 dotnet add package Soenneker.GeoNames.Cities500.Lookup
 ```
 
-## Quick start
+## Registration
 
 ```csharp
 using Soenneker.GeoNames.Cities500.Lookup.Registrars;
 using Microsoft.Extensions.DependencyInjection;
 
-var services = new ServiceCollection();
-var result = services.AddGeonamesCities500LookupAsSingleton();
+services.AddGeonamesCities500LookupAsSingleton();
 ```
 
-Adds `IGeonamesCities500Lookup` as a singleton service.
+Singleton registration is recommended: the data file is loaded once on first use and the immutable indexes are shared by every scope. `AddGeonamesCities500LookupAsScoped()` is also available when each scope should load and own a separate index.
 
-## What you get
+## Look up a city
 
-- `IGeonamesCities500Lookup` — A lookup util for US GeoNames cities500 data.
-- `GeonamesCities500LookupRegistrar` — A lookup util for GeoNames cities500 data, provided by GeoNames and updated daily.
-- `GeoNamesCoordinates` — Latitude and longitude coordinates for a GeoNames record.
-- `GeoNamesRecord` — A US city coordinate record.
+```csharp
+IGeonamesCities500Lookup lookup = serviceProvider
+    .GetRequiredService<IGeonamesCities500Lookup>();
 
-## API at a glance
+GeoNamesCoordinates? coordinates =
+    await lookup.GetCoordinatesByCityAndState("Ft. Lauderdale", "Florida");
+
+if (coordinates is { } value)
+    Console.WriteLine($"{value.Latitude}, {value.Longitude}");
+```
+
+City matching is case-insensitive, ignores accents and punctuation, and expands common tokens such as `Ft` to `Fort`, `St` to `Saint`, and `N` to `North`. State arguments accept either a postal abbreviation or full name. Blank, unknown, and unmatched inputs return an empty list or `null`; they are not exceptional.
+
+## Available lookups
 
 | API | What it does | Result / important behavior |
 | --- | --- | --- |
-| `IGeonamesCities500Lookup.GetAll(cancellationToken)` | Gets all US city records. | The matching records as a materialized collection. |
-| `IGeonamesCities500Lookup.GetByCity(city, cancellationToken)` | Gets all US city records matching the provided city. | The matching records as a materialized collection. |
-| `IGeonamesCities500Lookup.GetByState(state, cancellationToken)` | Gets all US city records in the provided state. State may be a two-letter abbreviation or full state name. | The matching records as a materialized collection. |
-| `IGeonamesCities500Lookup.GetByCityAndState(city, state, cancellationToken)` | Gets all US city records matching the provided city and state. State may be a two-letter abbreviation or full state name. | The matching records as a materialized collection. |
-| `GeonamesCities500LookupRegistrar.AddGeonamesCities500LookupAsSingleton(services)` | Adds `IGeonamesCities500Lookup` as a singleton service. | The same service collection, so additional registrations can be chained. |
-| `GeonamesCities500LookupRegistrar.AddGeonamesCities500LookupAsScoped(services)` | Adds `IGeonamesCities500Lookup` as a scoped service. | The same service collection, so additional registrations can be chained. |
+| `GetAll()` | Returns every packaged record. | Source-file order. |
+| `GetByCity(city)` | Finds a normalized city name across all states. | May return multiple places. |
+| `GetByState(state)` | Returns every record in a state. | Accepts code or full name. |
+| `GetByCityAndState(city, state)` | Finds every matching place in one state. | Preserves source-file order. |
+| `GetBestByCityAndState(city, state)` | Returns one matching record. | This is the first source-file match, not a population ranking. |
+| `GetCoordinatesByCityAndState(city, state)` | Returns the coordinates of the first match. | `null` when no match exists. |
 
-## Practical notes
+The lookup package references the data package, whose `Resources/cities500.txt` file is copied to the application output. The index is initialized lazily; cancellation can interrupt that initial file read. Later calls use the completed in-memory index.
 
-- Cancellation stops pending work; it does not undo work that has already completed.
+The source data is derived from [GeoNames](https://www.geonames.org/) and is subject to the attribution terms included by the data package.

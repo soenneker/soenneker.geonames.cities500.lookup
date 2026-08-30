@@ -5,57 +5,57 @@ using System.Threading.Tasks;
 namespace Soenneker.GeoNames.Cities500.Lookup.Abstract;
 
 /// <summary>
-/// A lookup util for US GeoNames cities500 data.
+/// Provides indexed access to the packaged US city, state, and coordinate extract from GeoNames cities500 data.
 /// </summary>
 public interface IGeonamesCities500Lookup
 {
     /// <summary>
-    /// Gets all US city records.
+    /// Gets every packaged US city record in source-file order.
     /// </summary>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
-    /// <returns>A task whose result is the collection returned by get All.</returns>
+    /// <returns>An immutable collection of all records.</returns>
     ValueTask<IReadOnlyCollection<GeoNamesRecord>> GetAll(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets all US city records matching the provided city.
+    /// Gets records whose normalized city name matches <paramref name="city"/>.
     /// </summary>
     /// <param name="city">City name to search for.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
-    /// <returns>A task whose result is the collection returned by get By City.</returns>
+    /// <returns>An immutable list of matching records, or an empty list when no match exists.</returns>
     ValueTask<IReadOnlyList<GeoNamesRecord>> GetByCity(string city, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets all US city records in the provided state. State may be a two-letter abbreviation or full state name.
+    /// Gets all records in a state. A two-letter postal abbreviation or full state name is accepted.
     /// </summary>
-    /// <param name="state">State value used by the variant.</param>
+    /// <param name="state">The state postal abbreviation or full name.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
-    /// <returns>A task whose result is the collection returned by get By State.</returns>
+    /// <returns>An immutable list of matching records, or an empty list when the state is unknown.</returns>
     ValueTask<IReadOnlyList<GeoNamesRecord>> GetByState(string state, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets all US city records matching the provided city and state. State may be a two-letter abbreviation or full state name.
+    /// Gets records matching a normalized city name within a state.
     /// </summary>
     /// <param name="city">City name to search for.</param>
-    /// <param name="state">State value used by the variant.</param>
+    /// <param name="state">The state postal abbreviation or full name.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
-    /// <returns>A task whose result is the collection returned by get By City And State.</returns>
+    /// <returns>An immutable list of matching records, or an empty list when no match exists.</returns>
     ValueTask<IReadOnlyList<GeoNamesRecord>> GetByCityAndState(string city, string state, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets the first matching US city record for the provided city and state. State may be a two-letter abbreviation or full state name.
+    /// Gets the first source-file record matching a normalized city name within a state.
     /// </summary>
     /// <param name="city">City name to search for.</param>
-    /// <param name="state">State value used by the variant.</param>
+    /// <param name="state">The state postal abbreviation or full name.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
-    /// <returns>A task whose result is the requested geo Names Record.</returns>
+    /// <returns>The first matching record, or <see langword="null"/> when no match exists.</returns>
     ValueTask<GeoNamesRecord?> GetBestByCityAndState(string city, string state, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets latitude and longitude for the first matching US city record for the provided city and state.
+    /// Gets coordinates from the first source-file record matching a normalized city name within a state.
     /// </summary>
     /// <param name="city">City name to search for.</param>
-    /// <param name="state">State value used by the variant.</param>
+    /// <param name="state">The state postal abbreviation or full name.</param>
     /// <param name="cancellationToken">Token used to cancel the operation.</param>
-    /// <returns>A task whose result is the requested geo Names Coordinates.</returns>
+    /// <returns>The matching coordinates, or <see langword="null"/> when no match exists.</returns>
     ValueTask<GeoNamesCoordinates?> GetCoordinatesByCityAndState(string city, string state, CancellationToken cancellationToken = default);
 }

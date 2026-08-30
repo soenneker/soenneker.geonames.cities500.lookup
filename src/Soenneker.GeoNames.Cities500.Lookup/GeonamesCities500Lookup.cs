@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -14,7 +15,6 @@ using Soenneker.Utils.Paths.Resources.Abstract;
 
 namespace Soenneker.GeoNames.Cities500.Lookup;
 
-/// <inheritdoc cref="IGeonamesCities500Lookup"/>
 public sealed class GeonamesCities500Lookup : IGeonamesCities500Lookup
 {
     private const string _fileName = "cities500.txt";
@@ -135,6 +135,7 @@ public sealed class GeonamesCities500Lookup : IGeonamesCities500Lookup
 
         await using FileStream fileStream = _fileUtil.OpenRead(filePath, log: false);
         using var reader = new StreamReader(fileStream);
+        Span<Range> columns = stackalloc Range[4];
 
         while (await reader.ReadLineAsync(cancellationToken) is { } line)
         {
@@ -144,7 +145,6 @@ public sealed class GeonamesCities500Lookup : IGeonamesCities500Lookup
                 continue;
 
             ReadOnlySpan<char> lineSpan = line;
-            Span<Range> columns = stackalloc Range[4];
             int columnCount = lineSpan.Split(columns, '\t');
 
             if (columnCount != 4)
@@ -157,8 +157,15 @@ public sealed class GeonamesCities500Lookup : IGeonamesCities500Lookup
             if (city.Length == 0 || !TryNormalizeState(state, out string stateCode))
                 continue;
 
-            var record = new GeoNamesRecord(city, stateCode, double.Parse(lineSpan[columns[2]], CultureInfo.InvariantCulture),
-                double.Parse(lineSpan[columns[3]], CultureInfo.InvariantCulture));
+            if (!double.TryParse(lineSpan[columns[2]], NumberStyles.Float, CultureInfo.InvariantCulture, out double latitude) ||
+                !double.IsFinite(latitude) || latitude is < -90 or > 90 ||
+                !double.TryParse(lineSpan[columns[3]], NumberStyles.Float, CultureInfo.InvariantCulture, out double longitude) ||
+                !double.IsFinite(longitude) || longitude is < -180 or > 180)
+            {
+                throw new InvalidDataException($"Invalid coordinates in GeoNames data at line {lineNumber}.");
+            }
+
+            var record = new GeoNamesRecord(city, stateCode, latitude, longitude);
 
             all.Add(record);
 
@@ -168,7 +175,7 @@ public sealed class GeonamesCities500Lookup : IGeonamesCities500Lookup
             Add(byStateNormalizedCity, BuildStateCityKey(record.State, normalizedCity), record);
         }
 
-        return new GeoNamesIndex(all.ToArray(), Freeze(byNormalizedCity), Freeze(byState),
+        return new GeoNamesIndex(all.ToImmutableArray(), Freeze(byNormalizedCity), Freeze(byState),
             Freeze(byStateNormalizedCity));
     }
 
@@ -204,8 +211,7 @@ public sealed class GeonamesCities500Lookup : IGeonamesCities500Lookup
 
         foreach (KeyValuePair<string, List<GeoNamesRecord>> pair in source)
         {
-            pair.Value.TrimExcess();
-            result[pair.Key] = pair.Value;
+            result[pair.Key] = pair.Value.ToImmutableArray();
         }
 
         return result.ToFrozenDictionary(source.Comparer);

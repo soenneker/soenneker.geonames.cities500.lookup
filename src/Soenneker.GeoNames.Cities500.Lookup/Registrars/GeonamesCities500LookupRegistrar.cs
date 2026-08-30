@@ -7,7 +7,7 @@ using Soenneker.GeoNames.Cities500.Lookup.Abstract;
 namespace Soenneker.GeoNames.Cities500.Lookup.Registrars;
 
 /// <summary>
-/// A lookup util for GeoNames cities500 data, provided by GeoNames and updated daily.
+/// Registers the lookup for the packaged US GeoNames cities500 extract.
 /// </summary>
 public static class GeonamesCities500LookupRegistrar
 {
