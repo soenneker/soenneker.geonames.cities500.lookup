@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using Soenneker.Utils.PooledStringBuilders;
 using System.Threading;
 using System.Threading.Tasks;
 using Soenneker.Asyncs.Initializers;
@@ -280,7 +281,7 @@ public sealed class GeonamesCities500Lookup : IGeonamesCities500Lookup
     private static string NormalizeText(string value)
     {
         value = value.Trim().Normalize(NormalizationForm.FormD);
-        var builder = new StringBuilder(value.Length);
+        using var builder = new PooledStringBuilder(value.Length);
         var previousWasSpace = true;
 
         foreach (char character in value)
@@ -304,8 +305,8 @@ public sealed class GeonamesCities500Lookup : IGeonamesCities500Lookup
             }
         }
 
-        if (builder.Length > 0 && builder[^1] == ' ')
-            builder.Length--;
+        if (builder.Length > 0 && builder.AsSpan()[^1] == ' ')
+            builder.Shrink(1);
 
         return builder.ToString();
     }
