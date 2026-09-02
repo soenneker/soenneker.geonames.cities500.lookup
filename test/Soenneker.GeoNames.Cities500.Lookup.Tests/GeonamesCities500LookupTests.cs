@@ -1,6 +1,7 @@
 using Soenneker.GeoNames.Cities500.Lookup.Abstract;
 using Soenneker.Tests.HostedUnit;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Soenneker.GeoNames.Cities500.Lookup.Tests;
@@ -16,9 +17,9 @@ public sealed class GeonamesCities500LookupTests : HostedUnitTest
     }
 
     [Test]
-    public async Task Gets_records_from_packaged_data()
+    public async Task Gets_records_from_packaged_data(CancellationToken cancellationToken)
     {
-        GeoNamesRecord? newYork = (await _datasuiteutil.GetByCityAndState("New York City", "NY")).FirstOrDefault();
+        GeoNamesRecord? newYork = (await _datasuiteutil.GetByCityAndState("New York City", "NY", cancellationToken: cancellationToken)).FirstOrDefault();
 
         await Assert.That(newYork).IsNotNull();
         await Assert.That(newYork!.City).IsEqualTo("New York City");
@@ -28,11 +29,11 @@ public sealed class GeonamesCities500LookupTests : HostedUnitTest
     }
 
     [Test]
-    public async Task Gets_indexed_records()
+    public async Task Gets_indexed_records(CancellationToken cancellationToken)
     {
-        GeoNamesRecord? byCity = (await _datasuiteutil.GetByCity("New York City")).FirstOrDefault();
-        GeoNamesRecord? byState = (await _datasuiteutil.GetByState("NY")).FirstOrDefault(x => x.City == "New York City");
-        GeoNamesRecord? byStateName = (await _datasuiteutil.GetByState("New York")).FirstOrDefault(x => x.City == "New York City");
+        GeoNamesRecord? byCity = (await _datasuiteutil.GetByCity("New York City", cancellationToken: cancellationToken)).FirstOrDefault();
+        GeoNamesRecord? byState = (await _datasuiteutil.GetByState("NY", cancellationToken: cancellationToken)).FirstOrDefault(x => x.City == "New York City");
+        GeoNamesRecord? byStateName = (await _datasuiteutil.GetByState("New York", cancellationToken: cancellationToken)).FirstOrDefault(x => x.City == "New York City");
 
         await Assert.That(byCity).IsNotNull();
         await Assert.That(byState).IsNotNull();
@@ -40,9 +41,9 @@ public sealed class GeonamesCities500LookupTests : HostedUnitTest
     }
 
     [Test]
-    public async Task Gets_coordinates_by_city_and_state()
+    public async Task Gets_coordinates_by_city_and_state(CancellationToken cancellationToken)
     {
-        GeoNamesCoordinates? coordinates = await _datasuiteutil.GetCoordinatesByCityAndState("Fort Lauderdale", "Florida");
+        GeoNamesCoordinates? coordinates = await _datasuiteutil.GetCoordinatesByCityAndState("Fort Lauderdale", "Florida", cancellationToken: cancellationToken);
 
         await Assert.That(coordinates).IsNotNull();
         await Assert.That(coordinates!.Value.Latitude).IsBetween(26.0, 27.0);
@@ -50,9 +51,9 @@ public sealed class GeonamesCities500LookupTests : HostedUnitTest
     }
 
     [Test]
-    public async Task Normalizes_city_and_state_for_coordinate_lookup()
+    public async Task Normalizes_city_and_state_for_coordinate_lookup(CancellationToken cancellationToken)
     {
-        GeoNamesRecord? record = await _datasuiteutil.GetBestByCityAndState("Ft. Lauderdale", "FL");
+        GeoNamesRecord? record = await _datasuiteutil.GetBestByCityAndState("Ft. Lauderdale", "FL", cancellationToken: cancellationToken);
 
         await Assert.That(record).IsNotNull();
         await Assert.That(record!.City).IsEqualTo("Fort Lauderdale");
