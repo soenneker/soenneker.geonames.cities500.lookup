@@ -136,7 +136,7 @@ public sealed class GeonamesCities500Lookup : IGeonamesCities500Lookup
 
         await using FileStream fileStream = _fileUtil.OpenRead(filePath, log: false);
         using var reader = new StreamReader(fileStream);
-        Span<Range> columns = stackalloc Range[4];
+        var columns = new Range[4];
 
         while (await reader.ReadLineAsync(cancellationToken) is { } line)
         {
