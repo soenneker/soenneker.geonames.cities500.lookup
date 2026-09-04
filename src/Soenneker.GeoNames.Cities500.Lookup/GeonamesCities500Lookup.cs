@@ -16,6 +16,7 @@ using Soenneker.Utils.Paths.Resources.Abstract;
 
 namespace Soenneker.GeoNames.Cities500.Lookup;
 
+/// <inheritdoc cref="IGeonamesCities500Lookup" />
 public sealed class GeonamesCities500Lookup : IGeonamesCities500Lookup
 {
     private const string _fileName = "cities500.txt";
