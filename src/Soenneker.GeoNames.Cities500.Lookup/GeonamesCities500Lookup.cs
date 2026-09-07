@@ -227,7 +227,13 @@ public sealed class GeonamesCities500Lookup : IGeonamesCities500Lookup
     private static bool TryNormalizeState(string state, out string stateCode)
     {
         stateCode = "";
-        string normalized = NormalizeText(state);
+        if (state is not null && _stateNames.TryGetValue(state, out string? directStateCode))
+        {
+            stateCode = directStateCode;
+            return true;
+        }
+
+        string normalized = NormalizeText(state!);
 
         if (normalized.Length == 0)
             return false;
