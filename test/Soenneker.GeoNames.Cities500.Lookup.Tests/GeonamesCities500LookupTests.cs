@@ -17,7 +17,7 @@ public sealed class GeonamesCities500LookupTests : HostedUnitTest
     }
 
     [Test]
-    public async Task Gets_records_from_packaged_data(CancellationToken cancellationToken)
+    public async ValueTask Gets_records_from_packaged_data(CancellationToken cancellationToken)
     {
         GeoNamesRecord? newYork = (await _datasuiteutil.GetByCityAndState("New York City", "NY", cancellationToken: cancellationToken)).FirstOrDefault();
 
@@ -29,7 +29,7 @@ public sealed class GeonamesCities500LookupTests : HostedUnitTest
     }
 
     [Test]
-    public async Task Gets_indexed_records(CancellationToken cancellationToken)
+    public async ValueTask Gets_indexed_records(CancellationToken cancellationToken)
     {
         GeoNamesRecord? byCity = (await _datasuiteutil.GetByCity("New York City", cancellationToken: cancellationToken)).FirstOrDefault();
         GeoNamesRecord? byState = (await _datasuiteutil.GetByState("NY", cancellationToken: cancellationToken)).FirstOrDefault(x => x.City == "New York City");
@@ -41,7 +41,7 @@ public sealed class GeonamesCities500LookupTests : HostedUnitTest
     }
 
     [Test]
-    public async Task Gets_coordinates_by_city_and_state(CancellationToken cancellationToken)
+    public async ValueTask Gets_coordinates_by_city_and_state(CancellationToken cancellationToken)
     {
         GeoNamesCoordinates? coordinates = await _datasuiteutil.GetCoordinatesByCityAndState("Fort Lauderdale", "Florida", cancellationToken: cancellationToken);
 
@@ -51,7 +51,7 @@ public sealed class GeonamesCities500LookupTests : HostedUnitTest
     }
 
     [Test]
-    public async Task Normalizes_city_and_state_for_coordinate_lookup(CancellationToken cancellationToken)
+    public async ValueTask Normalizes_city_and_state_for_coordinate_lookup(CancellationToken cancellationToken)
     {
         GeoNamesRecord? record = await _datasuiteutil.GetBestByCityAndState("Ft. Lauderdale", "FL", cancellationToken: cancellationToken);
 
