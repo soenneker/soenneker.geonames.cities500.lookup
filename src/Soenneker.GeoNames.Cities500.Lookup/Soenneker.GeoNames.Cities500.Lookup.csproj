@@ -48,8 +48,8 @@
     <ItemGroup>
         <PackageReference Include="Soenneker.Asyncs.Initializers" Version="11.0.140" />
 <PackageReference Include="Soenneker.GeoNames.Cities500.Data" Version="11.0.178" />
-        <PackageReference Include="Soenneker.Utils.File" Version="11.0.2341" />
-        <PackageReference Include="Soenneker.Utils.Paths.Resources" Version="11.0.315" />
+        <PackageReference Include="Soenneker.Utils.File" Version="11.0.2342" />
+        <PackageReference Include="Soenneker.Utils.Paths.Resources" Version="11.0.316" />
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Soenneker.Extensions.ValueTask" Version="11.0.136" />
